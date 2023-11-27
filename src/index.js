@@ -20,6 +20,7 @@ loadMoreButton.addEventListener('click', loadMoreHandler);
 
 async function loadMoreHandler() {
   page += 1;
+  iziToast.destroy();
   try {
     const data = await servicePictures(page);
     if ((page + 1) * 40 >= data.data.totalHits) {
@@ -62,10 +63,30 @@ async function searchButtonHandler(event) {
     } else if (Array.from(data.data.hits).length < 40) {      
       gallery.insertAdjacentHTML('beforeend', createMarkup(data.data.hits));
       gallerySimpleLightbox.refresh();
+      iziToast.show({
+        //title: 'Error',
+        message: `Hooray! We found ${data.data.totalHits} images.`,
+        close: false,
+        backgroundColor: 'green',
+        messageColor: 'white',
+        messageSize: 20,
+        timeout: 5000,
+        position: 'topCenter', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
+      });
     }else{
       loadMoreButton.classList.remove('hidden');
       gallery.insertAdjacentHTML('beforeend', createMarkup(data.data.hits));
       gallerySimpleLightbox.refresh();
+      iziToast.show({
+        //title: 'Error',
+        message: `Hooray! We found ${data.data.totalHits} images.`,
+        close: false,
+        backgroundColor: 'green',
+        messageColor: 'white',
+        messageSize: 20,
+        timeout: 5000,
+        position: 'topCenter', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
+      });
     }
   } catch {
     iziToast.show({
@@ -76,7 +97,7 @@ async function searchButtonHandler(event) {
       messageColor: 'white',
       messageSize: 20,
       timeout: 0,
-      position: 'topRight', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
+      position: 'topCenter', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
     });
   }
 }
