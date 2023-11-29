@@ -10,6 +10,7 @@ const gallery = document.querySelector('.gallery');
 const loadMoreButton = document.querySelector('.load-more');
 
 let page = 1;
+let textToSearch = '';
 let gallerySimpleLightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
   captionDelay: 50,
@@ -25,6 +26,16 @@ async function loadMoreHandler() {
     const data = await servicePictures(page);
     if ((page + 1) * 40 >= data.data.totalHits) {
       loadMoreButton.classList.add('hidden');
+      iziToast.show({
+        //title: 'Error',
+        message: `End of the collection of "${textToSearch}" exceeded.`,
+        close: false,
+        backgroundColor: 'red',
+        messageColor: 'white',
+        messageSize: 20,
+        timeout: 2000,
+        position: 'topRight', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
+      });
     }
     gallery.insertAdjacentHTML('beforeend', createMarkup(data.data.hits));
     gallerySimpleLightbox.refresh();
@@ -43,62 +54,69 @@ async function loadMoreHandler() {
 }
 
 async function searchButtonHandler(event) {
-  event.preventDefault();
+  page = 1;
+  textToSearch = input.value.trim();  
   iziToast.destroy();
-  gallery.innerHTML = '';
-  loadMoreButton.classList.add('hidden');
-  try {
-    const data = await servicePictures();
-    if (Array.from(data.data.hits).length === 0) {
+  if (textToSearch === '') {        
+    alert("Search form can't be empty, enter there some text for images search.");    
+    return;
+  } else {    
+    event.preventDefault();    
+    gallery.innerHTML = '';
+    loadMoreButton.classList.add('hidden');
+    try {
+      const data = await servicePictures();
+      if (Array.from(data.data.hits).length === 0) {
+        iziToast.show({
+          title: 'Error',
+          message: `Sorry, there are no images matching your search query. Please try again.`,
+          close: false,
+          backgroundColor: 'red',
+          messageColor: 'white',
+          messageSize: 20,
+          timeout: 2000,
+          position: 'topRight', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
+        });
+      } else if (Array.from(data.data.hits).length < 40) {
+        gallery.insertAdjacentHTML('beforeend', createMarkup(data.data.hits));
+        gallerySimpleLightbox.refresh();
+        iziToast.show({
+          //title: 'Error',
+          message: `Hooray! We found ${data.data.totalHits} images.`,
+          close: false,
+          backgroundColor: 'green',
+          messageColor: 'white',
+          messageSize: 20,
+          timeout: 2000,
+          position: 'topCenter', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
+        });
+      } else {
+        loadMoreButton.classList.remove('hidden');
+        gallery.insertAdjacentHTML('beforeend', createMarkup(data.data.hits));
+        gallerySimpleLightbox.refresh();
+        iziToast.show({
+          //title: 'Error',
+          message: `Hooray! We found ${data.data.totalHits} images.`,
+          close: false,
+          backgroundColor: 'green',
+          messageColor: 'white',
+          messageSize: 20,
+          timeout: 2000,
+          position: 'topCenter', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
+        });
+      }
+    } catch {
       iziToast.show({
-        title: 'Error',
-        message: `Sorry, there are no images matching your search query. Please try again.`,
+        //title: 'Error',
+        message: `Something goes wrong, please try reload page.`,
         close: false,
         backgroundColor: 'red',
         messageColor: 'white',
         messageSize: 20,
         timeout: 0,
-        position: 'topRight', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
-      });
-    } else if (Array.from(data.data.hits).length < 40) {      
-      gallery.insertAdjacentHTML('beforeend', createMarkup(data.data.hits));
-      gallerySimpleLightbox.refresh();
-      iziToast.show({
-        //title: 'Error',
-        message: `Hooray! We found ${data.data.totalHits} images.`,
-        close: false,
-        backgroundColor: 'green',
-        messageColor: 'white',
-        messageSize: 20,
-        timeout: 5000,
-        position: 'topCenter', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
-      });
-    }else{
-      loadMoreButton.classList.remove('hidden');
-      gallery.insertAdjacentHTML('beforeend', createMarkup(data.data.hits));
-      gallerySimpleLightbox.refresh();
-      iziToast.show({
-        //title: 'Error',
-        message: `Hooray! We found ${data.data.totalHits} images.`,
-        close: false,
-        backgroundColor: 'green',
-        messageColor: 'white',
-        messageSize: 20,
-        timeout: 5000,
         position: 'topCenter', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
       });
     }
-  } catch {
-    iziToast.show({
-      //title: 'Error',
-      message: `Something goes wrong, please try reload page.`,
-      close: false,
-      backgroundColor: 'red',
-      messageColor: 'white',
-      messageSize: 20,
-      timeout: 0,
-      position: 'topCenter', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter, center
-    });
   }
 }
 
@@ -106,14 +124,14 @@ async function servicePictures(page = 1) {
   const optionsAxios = {
     params: {
       key: '40858721-2ab2962236a746e97c71283b6',
-      q: input.value,
+      q: textToSearch,
       image_type: 'photo',
       orientation: 'horizontal',
       safesearch: true,
       page,
       per_page: 40,
     },
-  };
+  };  
   const pictures = await axios.get('https://pixabay.com/api/', optionsAxios);
   return pictures;
 }
@@ -141,33 +159,6 @@ function createMarkup(arr) {
     )
     .join('');
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // function searchButtonHandler(event) {
 //   event.preventDefault();
